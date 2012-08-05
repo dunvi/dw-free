@@ -674,27 +674,32 @@ body<=
     if ( @maintainer_userids || @moderator_userids ) {
         my $us = LJ::load_userids( @maintainer_userids, @moderator_userids );
 
-        my @maintlist = sort { $a->display_name cmp $b->display_name } map { $us->{$_} } @maintainer_userids;
-        my @modlist = sort { $a->display_name cmp $b->display_name } map { $us->{$_} } @moderator_userids;
+        my @maint_us = sort { $a->display_name cmp $b->display_name } map { $us->{$_} } @maintainer_userids;
+        my @maint_list_p = grep { $_->is_personal } @maint_us;
+        my @maint_list_i = grep { $_->is_identity } @maint_us;
 
         my $maintbody;
-        if ( @maintlist ) {
+        if ( @maint_us ) {
             $maintbody = $content_inner_block->(
                 section_name    => 'maints',
-                section_name_ml => { ml => '.label.maintainers', opts => { num => scalar @maintlist } },
+                section_name_ml => { ml => '.label.maintainers', opts => { num => scalar @maint_us } },
                 section_link    => 'maintainers',
                 extra_classes   => ' first',
-                body            => $listusers->( \@maintlist ),
+                body            => $listusers->( \@maint_list_p, \@maint_list_i ),
             );
         }
 
+        my @mod_us = sort { $a->display_name cmp $b->display_name } map { $us->{$_} } @moderator_userids;
+        my @mod_list_p = grep { $_->is_personal } @mod_us;
+        my @mod_list_i = grep { $_->is_identity } @mod_us;
+
         my $modbody;
-        if ( @modlist ) {
+        if ( @mod_us ) {
             $modbody = $content_inner_block->(
                 section_name    => 'mods',
                 section_link    => 'moderators',
-                section_name_ml => { ml => '.label.moderators', opts => { num => scalar @modlist } },
-                body            => $listusers->( \@modlist ),
+                section_name_ml => { ml => '.label.moderators', opts => { num => scalar @mod_us } },
+                body            => $listusers->( \@mod_list_p, \@mod_list_i ),
             );
         }
 
