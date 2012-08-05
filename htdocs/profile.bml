@@ -976,35 +976,33 @@ body<=
     if ( $u->is_individual ) {
         my ( $member_of_body, $admin_of_body, $posting_access_to_body, $watched_body );
 
-        if ( $u->is_personal ) {
-            my @member_of_list = map { $us->{$_} } @member_of_userids;
-            $member_of_body = $content_inner_block->(
-                section_name    => 'member_of_comms',
-                section_name_ml => $mlsn->( '.comms.member_of', \@member_of_list ),
-                section_link    => 'member_of',
-                extra_classes   => ' first',
-                body            => $listusers->( \@member_of_list ),
-                hidable         => 1,
-            );
+        my @member_of_list = map { $us->{$_} } @member_of_userids;
+        $member_of_body = $content_inner_block->(
+            section_name    => 'member_of_comms',
+            section_name_ml => $mlsn->( '.comms.member_of', \@member_of_list ),
+            section_link    => 'member_of',
+            extra_classes   => ' first',
+            body            => $listusers->( \@member_of_list ),
+            hidable         => 1,
+        );
 
-            my @admin_of_list = map { $us->{$_} } @admin_of_userids;
-            $admin_of_body = $content_inner_block->(
-                section_name    => 'admin_of_comms',
-                section_name_ml => $mlsn->( '.comms.admin_of', \@admin_of_list ),
-                section_link    => 'admin_of',
-                body            => $listusers->( \@admin_of_list ),
-                hidable         => 1,
-            );
+        my @admin_of_list = map { $us->{$_} } @admin_of_userids;
+        $admin_of_body = $content_inner_block->(
+            section_name    => 'admin_of_comms',
+            section_name_ml => $mlsn->( '.comms.admin_of', \@admin_of_list ),
+            section_link    => 'admin_of',
+            body            => $listusers->( \@admin_of_list ),
+            hidable         => 1,
+        );
 
-            my @posting_access_to_list = map { $us->{$_} } @posting_access_to_userids;
-            $posting_access_to_body = $content_inner_block->(
-                section_name    => 'posting_access_to_comms',
-                section_name_ml => $mlsn->( '.comms.posting_access_to', \@posting_access_to_list ),
-                section_link    => 'posting_access_to',
-                body            => $listusers->( \@posting_access_to_list ),
-                hidable         => 1,
-            );
-        }
+        my @posting_access_to_list = map { $us->{$_} } @posting_access_to_userids;
+        $posting_access_to_body = $content_inner_block->(
+            section_name    => 'posting_access_to_comms',
+            section_name_ml => $mlsn->( '.comms.posting_access_to', \@posting_access_to_list ),
+            section_link    => 'posting_access_to',
+            body            => $listusers->( \@posting_access_to_list ),
+            hidable         => 1,
+        );
 
         my @watched_list = grep { $_->is_community }
             map { $us->{$_} } @watched_userids;
