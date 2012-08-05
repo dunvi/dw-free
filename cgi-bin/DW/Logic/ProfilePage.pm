@@ -969,7 +969,7 @@ sub not_mutually_trusted_userids {
     my $u = $self->{u};
     my @ret;
 
-    return () unless $u->is_personal;
+    return () unless $u->is_individual;
 
     my @trusted_userids = $u->trusted_userids;
     my %is_trusted_by = map { $_ => 1 } $u->trusted_by_userids;
@@ -989,7 +989,7 @@ sub not_mutually_trusted_by_userids {
     my $u = $self->{u};
     my @ret;
 
-    return () unless $u->is_personal;
+    return () unless $u->is_individual;
 
     my @trusted_by_userids = $u->trusted_by_userids;
     my %is_trusted = map { $_ => 1 } $u->trusted_userids;
