@@ -863,7 +863,8 @@ body<=
             hidable         => 1,
         );
     } else {  # show_mutualfriends is false
-        if ( $u->is_personal ) {
+        if ( $u->is_individual ) {
+
             my @trusted_us = map { $us->{$_} } @trusted_userids;
             my @trusted_list_p = grep { $_->is_personal } @trusted_us;
             my @trusted_list_i = grep { $_->is_identity } @trusted_us;
@@ -876,55 +877,71 @@ body<=
                 body            => $listusers->( \@trusted_list_p, \@trusted_list_i ),
             );
 
-            my @trusted_by_list = grep { $includeuser->( $_ ) }
+            my @trusted_by_us = grep { $includeuser->( $_ ) }
                 map { $us->{$_} } @trusted_by_userids;
+            my @trusted_by_list_p = grep { $_->is_personal } @trusted_by_us;
+            my @trusted_by_list_i = grep { $_->is_identity } @trusted_by_us;
+
             $trusted_by_body = $content_inner_block->(
                 section_name    => 'trusted_by_people',
-                section_name_ml => $mlsn->( '.people.trusted_by', \@trusted_by_list ),
+                section_name_ml => $mlsn->( '.people.trusted_by',
+                    [ @trusted_by_list_p, @trusted_list_i ] ),
                 section_link    => 'trusted_by',
-                body            => $listusers->( \@trusted_by_list ),
+                body            => $listusers->( \@trusted_by_list_p, \@trusted_by_list_i ),
                 hidable         => 1,
             );
-        }
 
-        if ( $u->is_individual ) {
-            my @watched_list = grep { $_->is_individual }
-                map { $us->{$_} } @watched_userids;
+            my @watched_us = map { $us->{$_} } @watched_userids;
+            my @watched_list_p = grep { $_->is_personal } @watched_us;
+            my @watched_list_i = grep { $_->is_identity } @watched_us;
+
             $watched_body = $content_inner_block->(
                 section_name    => 'watched_people',
-                section_name_ml => $mlsn->( '.people.watched', \@watched_list ),
+                section_name_ml => $mlsn->( '.people.watched', [ @watched_list_p, @watched_list_i ] ),
                 section_link    => 'watched_people',
-                body            => $listusers->( \@watched_list ),
+                body            => $listusers->( \@watched_list_p, \@watched_list_i ),
             );
         }
 
         if ( $u->is_community ) {
-            my @members_list = map { $us->{$_} } @members_userids;
+
+            my @members_us = map { $us->{$_} } @members_userids;
+            my @members_list_p = grep { $_->is_personal } @members_us;
+            my @members_list_i = grep { $_->is_identity } @members_us;
+
             $members_body = $content_inner_block->(
                 section_name    => 'members_people',
-                section_name_ml => $mlsn->( '.people.members', \@members_list ),
+                section_name_ml => $mlsn->( '.people.members', [ @members_list_p, @members_list_i ] ),
                 section_link    => 'members',
                 extra_classes   => ' first',
-                body            => $listusers->( \@members_list ),
+                body            => $listusers->( \@members_list_p, \@members_list_i ),
             );
 
-            my @posting_access_from_list = map { $us->{$_} } @posting_access_from_userids;
+            my @posting_access_from_us = map { $us->{$_} } @posting_access_from_userids;
+            my @posting_access_from_list_p = grep { $_->is_personal } @posting_access_from_us;
+            my @posting_access_from_list_i = grep { $_->is_identity } @posting_access_from_us;
+
             $posting_access_from_body = $content_inner_block->(
                 section_name    => 'posting_access_from_people',
-                section_name_ml => $mlsn->( '.people.posting_access_from', \@posting_access_from_list ),
+                section_name_ml => $mlsn->( '.people.posting_access_from',
+                    [ @posting_access_from_list_p, @posting_access_from_list_i ] ),
                 section_link    => 'posting_access_from',
-                body            => $listusers->( \@posting_access_from_list ),
+                body            => $listusers->( \@posting_access_from_list_p,
+                                                 \@posting_access_from_list_i ),
                 hidable         => 1,
             );
         }
 
-        my @watched_by_list = grep { $includeuser->( $_ ) }
-            map { $us->{$_} } @watched_by_userids;
+        my @watched_by_us = map { $us->{$_} } @watched_by_userids;
+        my @watched_by_list_p = grep { $_->is_personal } @watched_by_us;
+        my @watched_by_list_i = grep { $_->is_identity } @watched_by_us;
+
         $watched_by_body = $content_inner_block->(
             section_name    => 'watched_by_people',
-            section_name_ml => $mlsn->( '.people.watched_by', \@watched_by_list ),
+            section_name_ml => $mlsn->( '.people.watched_by',
+                [ @watched_by_list_p, @watched_by_list_i ] ),
             section_link    => 'watched_by',
-            body            => $listusers->( \@watched_by_list ),
+            body            => $listusers->( \@watched_by_list_p, \@watched_by_list_i ),
             hidable         => 1,
         );
     }
