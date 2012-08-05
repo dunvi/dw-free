@@ -724,23 +724,20 @@ body<=
     my ( @trusted_userids, @trusted_by_userids, @mutually_trusted_userids, @not_mutually_trusted_userids, @not_mutually_trusted_by_userids );
     my ( @watched_userids, @watched_by_userids, @mutually_watched_userids, @not_mutually_watched_userids, @not_mutually_watched_by_userids );
 
-    # no mutual trust lists for identity accounts since they can't trust anyone
-    @trusted_by_userids = $u->trusted_by_userids if $u->is_identity;
-
     if ( $u->show_mutualfriends ) { # only can return true for personal or identity accounts
-        if ( $u->is_personal ) {
-            @mutually_trusted_userids = $u->mutually_trusted_userids;
-            @not_mutually_trusted_userids = $profile->not_mutually_trusted_userids;
-            @not_mutually_trusted_by_userids = $profile->not_mutually_trusted_by_userids;
-        }
+        @mutually_trusted_userids = $u->mutually_trusted_userids;
+        @not_mutually_trusted_userids = $profile->not_mutually_trusted_userids;
+        @not_mutually_trusted_by_userids = $profile->not_mutually_trusted_by_userids;
         @mutually_watched_userids = $u->mutually_watched_userids;
         @not_mutually_watched_userids = $profile->not_mutually_watched_userids;
         @not_mutually_watched_by_userids = $profile->not_mutually_watched_by_userids;
         @watched_userids = $u->watched_userids; # need this one to get watched communities and feeds
     } else {
-        @trusted_userids = $u->trusted_userids if $u->is_personal;
-        @trusted_by_userids = $u->trusted_by_userids if $u->is_personal;
-        @watched_userids = $u->watched_userids if $u->is_individual;
+        if ( $u->is_individual ) {
+            @trusted_userids = $u->trusted_userids;
+            @trusted_by_userids = $u->trusted_by_userids;
+            @watched_userids = $u->watched_userids;
+        }
         @watched_by_userids = $u->watched_by_userids
             # This is kind of a hack; we don't want to load these for communities with lots
             # of subscribers because the profile page chokes and dies.  This won't load them
@@ -781,80 +778,88 @@ body<=
 
     my ( $trusted_body, $trusted_by_body, $watched_body, $watched_by_body, $members_body, $posting_access_from_body );
 
-    if ( $u->is_identity ) {  # can't be mutual trust
-        my @trusted_by_list = grep { $includeuser->( $_ ) }
-            map { $us->{$_} } @trusted_by_userids;
-        $trusted_by_body = $content_inner_block->(
-            section_name    => 'trusted_by_people',
-            section_name_ml => $mlsn->( '.people.trusted_by', \@trusted_by_list ),
-            section_link    => 'trusted_by',
+    if ( $u->show_mutualfriends ) { # only can return true for personal or identity accounts
+
+        my @mutually_trusted_us = map { $us->{$_} } @mutually_trusted_userids;
+        my @mutually_trusted_list_p = grep { $_->is_personal } @mutually_trusted_us;
+        my @mutually_trusted_list_i = grep { $_->is_identity } @mutually_trusted_us;
+
+        $trusted_body .= $content_inner_block->(
+            section_name    => 'mutually_trusted_people',
+            section_name_ml => $mlsn->( '.people.mutually_trusted',
+                [ @mutually_trusted_list_p, @mutually_trusted_list_i ] ),
+            section_link    => 'mutually_trusted',
             extra_classes   => ' first',
-            body            => $listusers->( \@trusted_by_list ),
+            body            => $listusers->( \@mutually_trusted_list_p,
+                                             \@mutually_trusted_list_i ),
+        );
+
+        my @not_mutually_trusted_us = map { $us->{$_} } @not_mutually_trusted_userids;
+        my @not_mutually_trusted_list_p = grep { $_->is_personal } @not_mutually_trusted_us;
+        my @not_mutually_trusted_list_i = grep { $_->is_identity } @not_mutually_trusted_us;
+
+        $trusted_body .= $content_inner_block->(
+            section_name    => 'not_mutually_trusted_people',
+            section_name_ml => $mlsn->( '.people.not_mutually_trusted',
+                [ @not_mutually_trusted_list_p, @not_mutually_trusted_list_i ] ),
+            section_link    => 'not_mutually_trusted',
+            body            => $listusers->( \@not_mutually_trusted_list_p,
+                                             \@not_mutually_trusted_list_i ),
+        );
+
+        my @not_mutually_trusted_by_us = grep { $includeuser->( $_ ) }
+            map { $us->{$_} } @not_mutually_trusted_by_userids;
+        my @not_mutually_trusted_by_list_p = grep { $_->is_personal } @not_mutually_trusted_by_us;
+        my @not_mutually_trusted_by_list_i = grep { $_->is_identity } @not_mutually_trusted_by_us;
+
+        $trusted_by_body = $content_inner_block->(
+            section_name    => 'not_mutually_trusted_by_people',
+            section_name_ml => $mlsn->( '.people.not_mutually_trusted_by',
+                [ @not_mutually_trusted_by_list_p, @not_mutually_trusted_by_list_i ] ),
+            section_link    => 'not_mutually_trusted_by',
+            body            => $listusers->( \@not_mutually_trusted_by_list_p,
+                                             \@not_mutually_trusted_by_list_i ),
             hidable         => 1,
         );
-    }
 
-    if ( $u->show_mutualfriends ) { # only can return true for personal or identity accounts
-        if ( $u->is_personal ) {
-            my @mutually_trusted_list = grep { $_->is_individual }
-                map { $us->{$_} } @mutually_trusted_userids;
-            $trusted_body .= $content_inner_block->(
-                section_name    => 'mutually_trusted_people',
-                section_name_ml => $mlsn->( '.people.mutually_trusted', \@mutually_trusted_list ),
-                section_link    => 'mutually_trusted',
-                extra_classes   => ' first',
-                body            => $listusers->( \@mutually_trusted_list ),
-            );
+        my @mutually_watched_us = map { $us->{$_} } @mutually_watched_userids;
+        my @mutually_watched_list_p = grep { $_->is_personal } @mutually_watched_us;
+        my @mutually_watched_list_i = grep { $_->is_identity } @mutually_watched_us;
 
-            my @not_mutually_trusted_us = map { $us->{$_} } @not_mutually_trusted_userids;
-            my @not_mutually_trusted_list_p = grep { $_->is_personal } @not_mutually_trusted_us;
-            my @not_mutually_trusted_list_i = grep { $_->is_identity } @not_mutually_trusted_us;
-
-            $trusted_body .= $content_inner_block->(
-                section_name    => 'not_mutually_trusted_people',
-                section_name_ml => $mlsn->( '.people.not_mutually_trusted',
-                    [ @not_mutually_trusted_list_p, @not_mutually_trusted_list_i ] ),
-                section_link    => 'not_mutually_trusted',
-                body            => $listusers->( \@not_mutually_trusted_list_p,
-                                                 \@not_mutually_trusted_list_i ),
-            );
-
-            my @not_mutually_trusted_by_list = grep { $includeuser->( $_ ) }
-                map { $us->{$_} } @not_mutually_trusted_by_userids;
-            $trusted_by_body = $content_inner_block->(
-                section_name    => 'not_mutually_trusted_by_people',
-                section_name_ml => $mlsn->( '.people.not_mutually_trusted_by', \@not_mutually_trusted_by_list ),
-                section_link    => 'not_mutually_trusted_by',
-                body            => $listusers->( \@not_mutually_trusted_by_list ),
-                hidable         => 1,
-            );
-        }
-
-        my @mutually_watched_list = grep { $_->is_individual }
-            map { $us->{$_} } @mutually_watched_userids;
         $watched_body .= $content_inner_block->(
             section_name    => 'mutually_watched_people',
-            section_name_ml => $mlsn->( '.people.mutually_watched', \@mutually_watched_list ),
+            section_name_ml => $mlsn->( '.people.mutually_watched',
+                [ @mutually_watched_list_p, @mutually_watched_list_i ] ),
             section_link    => 'mutually_watched',
-            body            => $listusers->( \@mutually_watched_list ),
+            body            => $listusers->( \@mutually_watched_list_p,
+                                             \@mutually_watched_list_i ),
         );
 
-        my @not_mutually_watched_list = grep { $_->is_individual }
-            map { $us->{$_} } @not_mutually_watched_userids;
+        my @not_mutually_watched_us = map { $us->{$_} } @not_mutually_watched_userids;
+        my @not_mutually_watched_list_p = grep { $_->is_personal } @not_mutually_watched_us;
+        my @not_mutually_watched_list_i = grep { $_->is_identity } @not_mutually_watched_us;
+
         $watched_body .= $content_inner_block->(
             section_name    => 'not_mutually_watched_people',
-            section_name_ml => $mlsn->( '.people.not_mutually_watched', \@not_mutually_watched_list ),
+            section_name_ml => $mlsn->( '.people.not_mutually_watched',
+                [ @not_mutually_watched_list_p, @not_mutually_watched_list_i ] ),
             section_link    => 'not_mutually_watched',
-            body            => $listusers->( \@not_mutually_watched_list ),
+            body            => $listusers->( \@not_mutually_watched_list_p,
+                                             \@not_mutually_watched_list_i ),
         );
 
-        my @not_mutually_watched_by_list = grep { $includeuser->( $_ ) }
+        my @not_mutually_watched_by_us = grep { $includeuser->( $_ ) }
             map { $us->{$_} } @not_mutually_watched_by_userids;
+        my @not_mutually_watched_by_list_p = grep { $_->is_personal } @not_mutually_watched_by_us;
+        my @not_mutually_watched_by_list_i = grep { $_->is_identity } @not_mutually_watched_by_us;
+
         $watched_by_body = $content_inner_block->(
             section_name    => 'not_mutually_watched_by_people',
-            section_name_ml => $mlsn->( '.people.not_mutually_watched_by', \@not_mutually_watched_by_list ),
+            section_name_ml => $mlsn->( '.people.not_mutually_watched_by',
+                [ @not_mutually_watched_by_list_p, @not_mutually_watched_by_list_i ] ),
             section_link    => 'not_mutually_watched_by',
-            body            => $listusers->( \@not_mutually_watched_by_list ),
+            body            => $listusers->( \@not_mutually_watched_by_list_p,
+                                             \@not_mutually_watched_by_list_i ),
             hidable         => 1,
         );
     } else {  # show_mutualfriends is false
