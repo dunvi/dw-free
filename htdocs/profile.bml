@@ -733,11 +733,9 @@ body<=
         @not_mutually_watched_by_userids = $profile->not_mutually_watched_by_userids;
         @watched_userids = $u->watched_userids; # need this one to get watched communities and feeds
     } else {
-        if ( $u->is_individual ) {
-            @trusted_userids = $u->trusted_userids;
-            @trusted_by_userids = $u->trusted_by_userids;
-            @watched_userids = $u->watched_userids;
-        }
+        @trusted_userids = $u->trusted_userids if $u->is_individual;
+        @trusted_by_userids = $u->trusted_by_userids if $u->is_individual;
+        @watched_userids = $u->watched_userids if $u->is_individual;
         @watched_by_userids = $u->watched_by_userids
             # This is kind of a hack; we don't want to load these for communities with lots
             # of subscribers because the profile page chokes and dies.  This won't load them
@@ -751,9 +749,9 @@ body<=
 
     my ( @members_userids, @member_of_userids, @admin_of_userids, @posting_access_to_userids, @posting_access_from_userids );
     @members_userids = $u->member_userids if $u->is_community;
-    @member_of_userids = $u->member_of_userids if $u->is_personal;
-    @admin_of_userids = @{LJ::load_rel_target_cache( $u, 'A' )} if $u->is_personal;
-    @posting_access_to_userids = @{LJ::load_rel_target_cache( $u, 'P' )} if $u->is_personal;
+    @member_of_userids = $u->member_of_userids if $u->is_individual;
+    @admin_of_userids = @{LJ::load_rel_target_cache( $u, 'A' )} if $u->is_individual;
+    @posting_access_to_userids = @{LJ::load_rel_target_cache( $u, 'P' )} if $u->is_individual;
     @posting_access_from_userids = @{LJ::load_rel_user_cache( $u, 'P' )} if $u->is_community;
 
     my $us = LJ::load_userids(
