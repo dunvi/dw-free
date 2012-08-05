@@ -871,10 +871,12 @@ body<=
 
             $trusted_body = $content_inner_block->(
                 section_name    => 'trusted_people',
-                section_name_ml => $mlsn->( '.people.trusted', [ @trusted_list_p, @trusted_list_i ] ),
+                section_name_ml => $mlsn->( '.people.trusted',
+                    [ @trusted_list_p, @trusted_list_i ] ),
                 section_link    => 'trusted',
                 extra_classes   => ' first',
-                body            => $listusers->( \@trusted_list_p, \@trusted_list_i ),
+                body            => $listusers->( \@trusted_list_p,
+                                                 \@trusted_list_i ),
             );
 
             my @trusted_by_us = grep { $includeuser->( $_ ) }
@@ -887,7 +889,8 @@ body<=
                 section_name_ml => $mlsn->( '.people.trusted_by',
                     [ @trusted_by_list_p, @trusted_list_i ] ),
                 section_link    => 'trusted_by',
-                body            => $listusers->( \@trusted_by_list_p, \@trusted_by_list_i ),
+                body            => $listusers->( \@trusted_by_list_p,
+                                                 \@trusted_by_list_i ),
                 hidable         => 1,
             );
 
@@ -897,9 +900,11 @@ body<=
 
             $watched_body = $content_inner_block->(
                 section_name    => 'watched_people',
-                section_name_ml => $mlsn->( '.people.watched', [ @watched_list_p, @watched_list_i ] ),
+                section_name_ml => $mlsn->( '.people.watched',
+                    [ @watched_list_p, @watched_list_i ] ),
                 section_link    => 'watched_people',
-                body            => $listusers->( \@watched_list_p, \@watched_list_i ),
+                body            => $listusers->( \@watched_list_p,
+                                                 \@watched_list_i ),
             );
         }
 
@@ -911,10 +916,12 @@ body<=
 
             $members_body = $content_inner_block->(
                 section_name    => 'members_people',
-                section_name_ml => $mlsn->( '.people.members', [ @members_list_p, @members_list_i ] ),
+                section_name_ml => $mlsn->( '.people.members',
+                    [ @members_list_p, @members_list_i ] ),
                 section_link    => 'members',
                 extra_classes   => ' first',
-                body            => $listusers->( \@members_list_p, \@members_list_i ),
+                body            => $listusers->( \@members_list_p,
+                                                 \@members_list_i ),
             );
 
             my @posting_access_from_us = map { $us->{$_} } @posting_access_from_userids;
